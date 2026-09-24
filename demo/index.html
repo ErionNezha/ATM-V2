@@ -1,0 +1,101 @@
+<!-- Created by Erion Nezha — © 2026 All rights reserved -->
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATM Simulator — Demo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0e14;color:#e6e6e6;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px}
+h1{color:#fff;font-size:1.6rem;margin:10px 0 4px}
+.sub{color:#9fb3c8;font-size:.85rem;margin-bottom:16px}
+.atm{background:linear-gradient(135deg,#0d1b2a,#1b263b);border:1px solid #00d4ff33;border-radius:16px;width:100%;max-width:560px;padding:26px;box-shadow:0 10px 40px #0008}
+.screen{background:#04121a;border:1px solid #00d4ff44;border-radius:10px;padding:18px;min-height:220px;font-family:'Consolas',monospace;font-size:.92rem;line-height:1.7;color:#7fdbff;white-space:pre-wrap;margin-bottom:16px;max-height:300px;overflow-y:auto}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.keys button{background:#1b263b;color:#cfd8e3;border:1px solid #ffffff22;padding:13px 8px;border-radius:10px;cursor:pointer;font-size:.85rem;transition:.15s}
+.keys button:hover{background:#00d4ff;color:#04121a;font-weight:700}
+.keys button.cancel{background:#3a1420;border-color:#ff4d6d66}
+.keys button.cancel:hover{background:#ff4d6d;color:#fff}
+.form{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.form input,.form select{background:#0d1420;color:#fff;border:1px solid #ffffff22;border-radius:8px;padding:11px 14px;font-size:.92rem;outline:none}
+.form input:focus{border-color:#00d4ff}
+.form button{background:#00d4ff;color:#04121a;border:none;padding:12px;border-radius:8px;font-weight:700;cursor:pointer;font-size:.95rem}
+.form button:hover{background:#33e0ff}
+.hidden{display:none}
+footer{margin-top:16px;color:#5c6b7f;font-size:.8rem}
+footer strong{color:#9fb3c8}
+</style>
+</head>
+<body>
+<h1>🏧 ATM Simulator</h1>
+<div class="sub">Version web i ATM-it C++ — e njëjta logjikë menuje si në ATM.cpp origjinal</div>
+<div class="atm">
+  <div class="screen" id="screen">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~ MIRË SE ERDHE NË ATM ~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Shtyp një buton më poshtë për të filluar.</div>
+  <div class="keys" id="menu">
+    <button onclick="askCreate()">1. Krijo llogari</button>
+    <button onclick="showData()">2. Të dhënat</button>
+    <button onclick="askDeposit()">3. Depozito</button>
+    <button onclick="showBal()">4. Bilanci total</button>
+    <button onclick="askWithdraw()">5. Tërhiq</button>
+    <button class="cancel" onclick="cancel()">6. Anulo</button>
+  </div>
+  <div class="form hidden" id="form"></div>
+</div>
+<footer>Krijuar nga <strong>Erion Nezha</strong> — © 2026</footer>
+<script>
+// Klasa Bank — port direkt i klasës Bank në ATM.cpp
+const Bank={name:"",accnumber:0,type:"",tot:0,amount:0,
+  deposit(){this.tot+=this.amount;},
+  withdraw(a){return this.tot-a;}
+};
+const screen=document.getElementById('screen'),menu=document.getElementById('menu'),form=document.getElementById('form');
+function out(t){screen.textContent=t;screen.scrollTop=screen.scrollHeight;}
+function showMenu(){form.classList.add('hidden');menu.classList.remove('hidden');}
+function askCreate(){
+  menu.classList.add('hidden');form.classList.remove('hidden');
+  form.innerHTML='<input id="f-name" placeholder="Emri"><input id="f-acc" type="number" placeholder="Numri i llogarisë"><select id="f-type"><option>Current</option><option>Savings</option></select><input id="f-tot" type="number" placeholder="Bilanci fillestar"><button onclick="doCreate()">Ruaj</button>';
+}
+function doCreate(){
+  Bank.name=document.getElementById('f-name').value||"(pa emër)";
+  Bank.accnumber=document.getElementById('f-acc').value||0;
+  Bank.type=document.getElementById('f-type').value;
+  Bank.tot=parseFloat(document.getElementById('f-tot').value)||0;
+  out("✅ Llogaria u krijua!\n\nEmri: "+Bank.name+"\nNr. llogarisë: "+Bank.accnumber+"\nTipi: "+Bank.type+"\nBilanci: "+Bank.tot);
+  showMenu();
+}
+function showData(){
+  if(!Bank.name)return out("⚠️ Krijo llogarinë fillimisht (opsioni 1).");
+  out("Name: "+Bank.name+"\nAccount No: "+Bank.accnumber+"\nAccount type: "+Bank.type+"\nBalance: "+Bank.tot);
+}
+function askDeposit(){
+  menu.classList.add('hidden');form.classList.remove('hidden');
+  form.innerHTML='<input id="f-dep" type="number" placeholder="Shuma për depozitim"><button onclick="doDeposit()">Depozito</button>';
+}
+function doDeposit(){
+  Bank.amount=parseFloat(document.getElementById('f-dep').value)||0;
+  out("\nShuma e depozituar: "+Bank.amount);
+  showMenu();
+}
+function showBal(){
+  Bank.deposit();
+  out("\nBilanci total është: "+Bank.tot);
+}
+function askWithdraw(){
+  menu.classList.add('hidden');form.classList.remove('hidden');
+  form.innerHTML='<input id="f-wd" type="number" placeholder="Shuma për tërheqje"><button onclick="doWithdraw()">Tërhiq</button>';
+}
+function doWithdraw(){
+  const a=parseFloat(document.getElementById('f-wd').value)||0;
+  const avai=Bank.withdraw(a);
+  out("\nBilanci i disponueshëm është: "+avai);
+  showMenu();
+}
+function cancel(){out("👋 Sesioni u anulua. Faleminderit!");Bank.name="";Bank.tot=0;Bank.amount=0;}
+</script>
+</body>
+</html>
